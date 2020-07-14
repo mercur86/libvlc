@@ -20,14 +20,16 @@
 
 package org.videolan.libvlc;
 
+import android.content.res.AssetFileDescriptor;
 import android.net.Uri;
-import android.support.annotation.Nullable;
 
 import org.videolan.libvlc.util.AndroidUtil;
 import org.videolan.libvlc.util.HWDecoderUtil;
 import org.videolan.libvlc.util.VLCUtil;
 
 import java.io.FileDescriptor;
+
+import androidx.annotation.Nullable;
 
 @SuppressWarnings("unused, JniMissingFunction")
 public class Media extends VLCObject<Media.Event> {
@@ -55,14 +57,14 @@ public class Media extends VLCObject<Media.Event> {
 
         /**
          * Get the ParsedStatus in case of {@link Event#ParsedChanged} event
-         * @return {@link ParsedStatus}
+         * @return {@link Media.ParsedStatus}
          */
         public int getParsedStatus() {
             return (int) arg1;
         }
     }
 
-    public interface EventListener extends VLCEvent.Listener<Event> {}
+    public interface EventListener extends VLCEvent.Listener<Media.Event> {}
 
     /**
      * libvlc_media_type_t
@@ -417,6 +419,9 @@ public class Media extends VLCObject<Media.Event> {
     private int mState = -1;
     private int mType = -1;
     private boolean mCodecOptionSet = false;
+    private boolean mFileCachingSet = false;
+    private boolean mNetworkCachingSet = false;
+
 
     /**
      * Create a Media from libVLC and a local path starting with '/'.
@@ -455,6 +460,20 @@ public class Media extends VLCObject<Media.Event> {
     }
 
     /**
+     * Create a Media from libVLC and an AssetFileDescriptor
+     *
+     * @param libVLC a valid LibVLC
+     * @param afd asset file descriptor object
+     */
+    public Media(LibVLC libVLC, AssetFileDescriptor afd) {
+        super(libVLC);
+        long offset = afd.getStartOffset();
+        long length = afd.getLength();
+        nativeNewFromFdWithOffsetLength(libVLC, afd.getFileDescriptor(), offset, length);
+        mUri = VLCUtil.UriFromMrl(nativeGetMrl());
+    }
+
+    /**
      *
      * @param ml Should not be released and locked
      * @param index index of the Media from the MediaList
@@ -474,7 +493,7 @@ public class Media extends VLCObject<Media.Event> {
     }
 
     @Override
-    protected synchronized Event onEventNative(int eventType, long arg1, long arg2, float argf1) {
+    protected synchronized Event onEventNative(int eventType, long arg1, long arg2, float argf1, @Nullable String args1) {
         switch (eventType) {
         case Event.MetaChanged:
             // either we update all metas (if first call) or we update a specific meta
@@ -757,8 +776,10 @@ public class Media extends VLCObject<Media.Event> {
          * for 320x170 H.264, a few packets less on higher resolutions.
          * On Nexus S, the decoder latency seems to be about 7 packets.
          */
-        addOption(":file-caching=1500");
-        addOption(":network-caching=1500");
+        if (!mFileCachingSet)
+            addOption(":file-caching=1500");
+        if (!mNetworkCachingSet)
+            addOption(":network-caching=1500");
 
         final StringBuilder sb = new StringBuilder(":codec=");
         if (decoder == HWDecoderUtil.Decoder.MEDIACODEC || decoder == HWDecoderUtil.Decoder.ALL)
@@ -781,6 +802,11 @@ public class Media extends VLCObject<Media.Event> {
         }
         if (!codecOptionSet)
             setHWDecoderEnabled(true, false);
+
+        /* dvdnav need to be explicitly forced for network playbacks */
+        if (mUri != null && mUri.getScheme() != null && !mUri.getScheme().equalsIgnoreCase("file") &&
+                mUri.getLastPathSegment() != null && mUri.getLastPathSegment().toLowerCase().endsWith(".iso"))
+            addOption(":demux=dvdnav,any");
     }
 
     /**
@@ -792,6 +818,10 @@ public class Media extends VLCObject<Media.Event> {
         synchronized (this) {
             if (!mCodecOptionSet && option.startsWith(":codec="))
                 mCodecOptionSet = true;
+            if (!mNetworkCachingSet && option.startsWith(":network-caching="))
+                mNetworkCachingSet = true;
+            if (!mFileCachingSet && option.startsWith(":file-caching="))
+                mFileCachingSet = true;
         }
         nativeAddOption(option);
     }
@@ -848,6 +878,7 @@ public class Media extends VLCObject<Media.Event> {
     private native void nativeNewFromPath(LibVLC libVLC, String path);
     private native void nativeNewFromLocation(LibVLC libVLC, String location);
     private native void nativeNewFromFd(LibVLC libVLC, FileDescriptor fd);
+    private native void nativeNewFromFdWithOffsetLength(LibVLC libVLC, FileDescriptor fd, long offset, long length);
     private native void nativeNewFromMediaList(MediaList ml, int index);
     private native void nativeRelease();
     private native boolean nativeParseAsync(int flags, int timeout);

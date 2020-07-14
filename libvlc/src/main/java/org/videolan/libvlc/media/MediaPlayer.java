@@ -31,11 +31,14 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.view.Surface;
 import android.view.SurfaceHolder;
+
+import org.videolan.libvlc.LibVLC;
+import org.videolan.libvlc.Media;
+
+import java.io.File;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.util.Map;
-import org.videolan.libvlc.LibVLC;
-import org.videolan.libvlc.Media;
 
 public class MediaPlayer
 {

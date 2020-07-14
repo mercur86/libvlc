@@ -25,7 +25,7 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.net.Uri;
 import android.os.Build;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Log;
 
 import org.videolan.libvlc.LibVLC;
@@ -63,8 +63,8 @@ public class VLCUtil {
     @SuppressWarnings("deprecation")
     public static String[] getABIList() {
         final String[] abis = new String[2];
-        abis[0] = Build.CPU_ABI;
-        abis[1] = Build.CPU_ABI2;
+        abis[0] = android.os.Build.CPU_ABI;
+        abis[1] = android.os.Build.CPU_ABI2;
         return abis;
     }
 

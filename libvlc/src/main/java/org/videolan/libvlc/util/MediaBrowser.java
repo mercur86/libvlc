@@ -22,7 +22,7 @@ package org.videolan.libvlc.util;
 
 import android.net.Uri;
 import android.os.Handler;
-import android.support.annotation.MainThread;
+import androidx.annotation.MainThread;
 import android.util.Log;
 
 import org.videolan.libvlc.LibVLC;
@@ -183,7 +183,7 @@ public class MediaBrowser {
      * Browse to the specified local path starting with '/'.
      *
      * @param path
-     * @param flags see {@link Flag}
+     * @param flags see {@link MediaBrowser.Flag}
      */
     @MainThread
     public void browse(String path, int flags) {
@@ -196,7 +196,7 @@ public class MediaBrowser {
      * Browse to the specified uri.
      *
      * @param uri
-     * @param flags see {@link Flag}
+     * @param flags see {@link MediaBrowser.Flag}
      */
     @MainThread
     public void browse(Uri uri, int flags) {
@@ -209,7 +209,7 @@ public class MediaBrowser {
      * Browse to the specified media.
      *
      * @param media Can be a media returned by MediaBrowser.
-     * @param flags see {@link Flag}
+     * @param flags see {@link MediaBrowser.Flag}
      */
     @MainThread
     public void browse(Media media, int flags) {

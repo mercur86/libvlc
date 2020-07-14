@@ -20,7 +20,7 @@
 
 package org.videolan.libvlc;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 @SuppressWarnings("unused, JniMissingFunction")
 public class MediaDiscoverer extends VLCObject<MediaDiscoverer.Event> {
@@ -65,7 +65,7 @@ public class MediaDiscoverer extends VLCObject<MediaDiscoverer.Event> {
         return new Description(name, longName, category);
     }
 
-    public interface EventListener extends VLCEvent.Listener<Event> {}
+    public interface EventListener extends VLCEvent.Listener<MediaDiscoverer.Event> {}
 
     private MediaList mMediaList = null;
 
@@ -106,7 +106,7 @@ public class MediaDiscoverer extends VLCObject<MediaDiscoverer.Event> {
     }
 
     @Override
-    protected Event onEventNative(int eventType, long arg1, long arg2, float argf1) {
+    protected Event onEventNative(int eventType, long arg1, long arg2, float argf1, @Nullable String args1) {
         switch (eventType) {
             case Event.Started:
             case Event.Ended:
